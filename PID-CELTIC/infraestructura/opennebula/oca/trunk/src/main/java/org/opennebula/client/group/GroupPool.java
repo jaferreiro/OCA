@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.opennebula.client.cluster;
+package org.opennebula.client.group;
 
 import java.util.AbstractList;
 import java.util.Iterator;
@@ -26,21 +26,19 @@ import org.opennebula.client.PoolElement;
 import org.w3c.dom.Node;
 
 /**
- * This class represents an OpenNebula cluster pool.
+ * This class represents an OpenNebula group pool.
  * It also offers static XML-RPC call wrappers.
  */
-public class ClusterPool extends Pool implements Iterable<Cluster>{
+public class GroupPool extends Pool implements Iterable<Group>{
 
-    public static final int NONE_CLUSTER_ID = -1;
-
-    private static final String ELEMENT_NAME = "CLUSTER";
-    private static final String INFO_METHOD  = "clusterpool.info";
+    private static final String ELEMENT_NAME = "GROUP";
+    private static final String INFO_METHOD  = "grouppool.info";
 
     /**
-     * Creates a new cluster pool
+     * Creates a new group pool
      * @param client XML-RPC Client.
      */
-    public ClusterPool(Client client)
+    public GroupPool(Client client)
     {
         super(ELEMENT_NAME, client, INFO_METHOD);
     }
@@ -48,11 +46,11 @@ public class ClusterPool extends Pool implements Iterable<Cluster>{
     @Override
     public PoolElement factory(Node node)
     {
-        return new Cluster(node, client);
+        return new Group(node, client);
     }
 
     /**
-     * Retrieves all the clusters in the pool.
+     * Retrieves all the groups in the pool.
      *
      * @param client XML-RPC Client.
      * @return If successful the message contains the string
@@ -64,27 +62,27 @@ public class ClusterPool extends Pool implements Iterable<Cluster>{
     }
 
     /**
-     * Loads the xml representation of the cluster pool.
+     * Loads the xml representation of the group pool.
      *
-     * @see ClusterPool#info(Client)
+     * @see GroupPool#info(Client)
      */
     public OneResponse info()
     {
         return super.info();
     }
 
-    public Iterator<Cluster> iterator()
+    public Iterator<Group> iterator()
     {
-        AbstractList<Cluster> ab = new AbstractList<Cluster>()
+        AbstractList<Group> ab = new AbstractList<Group>()
         {
             public int size()
             {
                 return getLength();
             }
 
-            public Cluster get(int index)
+            public Group get(int index)
             {
-                return (Cluster) item(index);
+                return (Group) item(index);
             }
         };
 
@@ -92,14 +90,14 @@ public class ClusterPool extends Pool implements Iterable<Cluster>{
     }
 
     /**
-     * Returns the Cluster with the given Id from the pool. If it is not found,
+     * Returns the Group with the given Id from the pool. If it is not found,
      * then returns null. The method {@link #info()} must be called before.
      *
-     * @param id of the Cluster to retrieve
+     * @param id of the Group to retrieve
      * @return The Image with the given Id, or null if it was not found.
      */
-    public Cluster getById(int id)
+    public Group getById(int id)
     {
-        return (Cluster) super.getById(id);
+        return (Group) super.getById(id);
     }
 }

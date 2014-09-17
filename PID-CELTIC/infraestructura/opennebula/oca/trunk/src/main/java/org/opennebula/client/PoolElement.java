@@ -1,12 +1,12 @@
 /*******************************************************************************
- * Copyright 2002-2010, OpenNebula Project Leads (OpenNebula.org)
- * 
+ * Copyright 2002-2013, OpenNebula Project Leads (OpenNebula.org)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -59,7 +59,7 @@ public abstract class PoolElement {
 
     /**
      * Creates a new PoolElement from the xml provided.
-     * 
+     *
      * @param client XML-RPC Client.
      * @param xmlElement XML representation of the element.
      */
@@ -101,6 +101,77 @@ public abstract class PoolElement {
     }
 
     /**
+     * Changes the permissions
+     *
+     * @param client XML-RPC Client.
+     * @param method XML-RPC method.
+     * @param id The id of the target object.
+     * @param owner_u 1 to allow, 0 deny, -1 do not change
+     * @param owner_m 1 to allow, 0 deny, -1 do not change
+     * @param owner_a 1 to allow, 0 deny, -1 do not change
+     * @param group_u 1 to allow, 0 deny, -1 do not change
+     * @param group_m 1 to allow, 0 deny, -1 do not change
+     * @param group_a 1 to allow, 0 deny, -1 do not change
+     * @param other_u 1 to allow, 0 deny, -1 do not change
+     * @param other_m 1 to allow, 0 deny, -1 do not change
+     * @param other_a 1 to allow, 0 deny, -1 do not change
+     * @return If an error occurs the error message contains the reason.
+     */
+    protected static OneResponse chmod(Client client, String method, int id,
+                                    int owner_u, int owner_m, int owner_a,
+                                    int group_u, int group_m, int group_a,
+                                    int other_u, int other_m, int other_a)
+    {
+        return client.call(method, id,
+                            owner_u, owner_m, owner_a,
+                            group_u, group_m, group_a,
+                            other_u, other_m, other_a);
+    }
+
+    /**
+     * Changes the permissions
+     *
+     * @param client XML-RPC Client.
+     * @param method XML-RPC method.
+     * @param id The id of the target object.
+     * @param octet Permissions octet, e.g. 640
+     * @return If an error occurs the error message contains the reason.
+     */
+    protected static OneResponse chmod(Client client, String method, int id,
+                                        String octet)
+    {
+        int owner_u = (Integer.parseInt(octet.substring(0, 1)) & 4) != 0 ? 1 : 0;
+        int owner_m = (Integer.parseInt(octet.substring(0, 1)) & 2) != 0 ? 1 : 0;
+        int owner_a = (Integer.parseInt(octet.substring(0, 1)) & 1) != 0 ? 1 : 0;
+        int group_u = (Integer.parseInt(octet.substring(1, 2)) & 4) != 0 ? 1 : 0;
+        int group_m = (Integer.parseInt(octet.substring(1, 2)) & 2) != 0 ? 1 : 0;
+        int group_a = (Integer.parseInt(octet.substring(1, 2)) & 1) != 0 ? 1 : 0;
+        int other_u = (Integer.parseInt(octet.substring(2, 3)) & 4) != 0 ? 1 : 0;
+        int other_m = (Integer.parseInt(octet.substring(2, 3)) & 2) != 0 ? 1 : 0;
+        int other_a = (Integer.parseInt(octet.substring(2, 3)) & 1) != 0 ? 1 : 0;
+
+        return chmod(client, method, id,
+                owner_u, owner_m, owner_a,
+                group_u, group_m, group_a,
+                other_u, other_m, other_a);
+    }
+
+    /**
+     * Changes the permissions
+     *
+     * @param client XML-RPC Client.
+     * @param method XML-RPC method.
+     * @param id The id of the target object.
+     * @param octet Permissions octed , e.g. 640
+     * @return If an error occurs the error message contains the reason.
+     */
+    protected static OneResponse chmod(Client client, String method, int id,
+                                        int octet)
+    {
+        return chmod(client, method, id, Integer.toString(octet));
+    }
+
+    /**
      * Returns the element's ID.
      * @return the element's ID.
      */
@@ -135,13 +206,58 @@ public abstract class PoolElement {
     }
 
     /**
+     * Returns the owner User's ID, or -1 if the element doesn't have one.
+     *
+     * @return the owner User's ID, or -1 if the element doesn't have one.
+     */
+    public int uid()
+    {
+        String  uid_str = xpath("UID");
+        int     uid_int = -1;
+
+        if ( uid_str != null )
+        {
+            try
+            {
+                uid_int = Integer.parseInt( uid_str );
+            }
+            catch (NumberFormatException e) {}
+        }
+
+        return uid_int;
+    }
+
+    /**
+     * Returns the element group's ID, or -1 if the element doesn't have one.
+     *
+     * @return the element group's ID, or -1 if the element doesn't have one.
+     */
+    public int gid()
+    {
+        String  gid_str = xpath("GID");
+        int     gid_int = -1;
+
+        if ( gid_str != null )
+        {
+            try
+            {
+                gid_int = Integer.parseInt( gid_str );
+            }
+            catch (NumberFormatException e) {}
+        }
+
+        return gid_int;
+    }
+
+    /**
      * Evaluates an XPath expression and returns the result as a String.
      * If the internal xml representation is not built, returns null. The
      * subclass method info() must be called before.
      *
      * @param expression The XPath expression.
      * @return The String that is the result of evaluating the
-     * expression and converting the result to a String. Null if
+     * expression and converting the result to a String. An empty String is
+     * returned if the expression is not a valid path; null if
      * the internal xml representation is not built.
      */
     public String xpath(String expression)

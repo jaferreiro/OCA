@@ -1,12 +1,12 @@
 /*******************************************************************************
- * Copyright 2002-2010, OpenNebula Project Leads (OpenNebula.org)
- * 
+ * Copyright 2002-2013, OpenNebula Project Leads (OpenNebula.org)
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,27 +18,30 @@ package org.opennebula.client.cluster;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.PoolElement;
-import org.opennebula.client.host.Host;
 import org.w3c.dom.Node;
 
 /**
  * This class represents an OpenNebula cluster.
  * It also offers static XML-RPC call wrappers.
  */
-public class Cluster extends PoolElement
-{
+public class Cluster extends PoolElement{
 
-    private static final String METHOD_PREFIX = "cluster.";
-    private static final String ALLOCATE = METHOD_PREFIX + "allocate";
-    private static final String INFO     = METHOD_PREFIX + "info";
-    private static final String DELETE   = METHOD_PREFIX + "delete";
-    private static final String ADD      = METHOD_PREFIX + "add";
-    private static final String REMOVE   = METHOD_PREFIX + "remove";
-
+    private static final String METHOD_PREFIX   = "cluster.";
+    private static final String ALLOCATE        = METHOD_PREFIX + "allocate";
+    private static final String DELETE          = METHOD_PREFIX + "delete";
+    private static final String INFO            = METHOD_PREFIX + "info";
+    private static final String UPDATE          = METHOD_PREFIX + "update";
+    private static final String ADDHOST         = METHOD_PREFIX + "addhost";
+    private static final String DELHOST         = METHOD_PREFIX + "delhost";
+    private static final String ADDDATASTORE    = METHOD_PREFIX + "adddatastore";
+    private static final String DELDATASTORE    = METHOD_PREFIX + "deldatastore";
+    private static final String ADDVNET         = METHOD_PREFIX + "addvnet";
+    private static final String DELVNET         = METHOD_PREFIX + "delvnet";
 
     /**
-     * Creates a new Image representation.
-     * @param id The image id.
+     * Creates a new Cluster representation.
+     *
+     * @param id The cluster id.
      * @param client XML-RPC Client.
      */
     public Cluster(int id, Client client)
@@ -59,14 +62,13 @@ public class Cluster extends PoolElement
     // Static XML-RPC methods
     // =================================
 
-
     /**
-     * Allocates a new Cluster in OpenNebula.
+     * Allocates a new cluster in OpenNebula
      *
      * @param client XML-RPC Client.
-     * @param name Name for the cluster we want to add.
+     * @param name Name for the new cluster.
      * @return If successful the message contains the associated
-     * id generated for this Cluster.
+     * id generated for this cluster.
      */
     public static OneResponse allocate(Client client, String name)
     {
@@ -74,10 +76,10 @@ public class Cluster extends PoolElement
     }
 
     /**
-     * Retrieves the information of the given Cluster.
+     * Retrieves the information of the given cluster.
      *
      * @param client XML-RPC Client.
-     * @param id The cluster id for the cluster to retrieve the information from
+     * @param id The cluster id.
      * @return If successful the message contains the string
      * with the information returned by OpenNebula.
      */
@@ -88,9 +90,9 @@ public class Cluster extends PoolElement
 
     /**
      * Deletes a cluster from OpenNebula.
-     * 
+     *
      * @param client XML-RPC Client.
-     * @param id The cluster id of the target cluster we want to delete.
+     * @param id The cluster id.
      * @return A encapsulated response.
      */
     public static OneResponse delete(Client client, int id)
@@ -99,41 +101,111 @@ public class Cluster extends PoolElement
     }
 
     /**
-     * Adds a host to a cluster.
-     * 
+     * Replaces the cluster contents.
+     *
      * @param client XML-RPC Client.
-     * @param id The cluster id of the cluster where the host will be assigned.
-     * @param hid The host id (hid) of the host.
-     * @return If an error occurs the error message contains the reason.
+     * @param id The id of the target cluster we want to modify.
+     * @param new_template New template contents.
+     * @return If successful the message contains the cluster id.
      */
-    public static OneResponse add(Client client, int id, int hid)
+    public static OneResponse update(Client client, int id, String new_template)
     {
-        return client.call(ADD, hid, id);
+        return client.call(UPDATE, id, new_template);
     }
 
     /**
-     * Removes a host from its cluster.
-     * 
+     * Adds a Host to this Cluster
+     *
      * @param client XML-RPC Client.
-     * @param hid The host id (hid) of the host.
-     * @return If an error occurs the error message contains the reason.
+     * @param id The cluster id.
+     * @param hid Host ID.
+     *
+     * @return A encapsulated response.
      */
-    public static OneResponse remove(Client client, int hid)
+    public static OneResponse addHost(Client client, int id, int hid)
     {
-        return client.call(REMOVE, hid);
+        return client.call(ADDHOST, id, hid);
     }
 
+    /**
+     * Deletes a Host from this Cluster
+     *
+     * @param client XML-RPC Client.
+     * @param id The cluster id.
+     * @param hid Host ID.
+     *
+     * @return A encapsulated response.
+     */
+    public static OneResponse delHost(Client client, int id, int hid)
+    {
+        return client.call(DELHOST, id, hid);
+    }
+
+    /**
+     * Adds a Datastore to this Cluster
+     *
+     * @param client XML-RPC Client.
+     * @param id The cluster id.
+     * @param dsId Datastore ID.
+     *
+     * @return A encapsulated response.
+     */
+    public static OneResponse addDatastore(Client client, int id, int dsId)
+    {
+        return client.call(ADDDATASTORE, id, dsId);
+    }
+
+    /**
+     * Deletes a Datastore from this Cluster
+     *
+     * @param client XML-RPC Client.
+     * @param id The cluster id.
+     * @param dsId Datastore ID.
+     *
+     * @return A encapsulated response.
+     */
+    public static OneResponse delDatastore(Client client, int id, int dsId)
+    {
+        return client.call(DELDATASTORE, id, dsId);
+    }
+
+    /**
+     * Adds a VNet to this Cluster
+     *
+     * @param client XML-RPC Client.
+     * @param id The cluster id.
+     * @param vnetId VNet ID.
+     *
+     * @return A encapsulated response.
+     */
+    public static OneResponse addVnet(Client client, int id, int vnetId)
+    {
+        return client.call(ADDVNET, id, vnetId);
+    }
+
+    /**
+     * Deletes a VNet from this Cluster
+     *
+     * @param client XML-RPC Client.
+     * @param id The cluster id.
+     * @param vnetId VNet ID.
+     *
+     * @return A encapsulated response.
+     */
+    public static OneResponse delVnet(Client client, int id, int vnetId)
+    {
+        return client.call(DELVNET, id, vnetId);
+    }
 
     // =================================
     // Instanced object XML-RPC methods
     // =================================
 
-
     /**
-     * Retrieves the information of the Cluster.
+     * Loads the xml representation of the cluster.
+     * The info is also stored internally.
      *
-     * @return If successful the message contains the string
-     * with the information returned by OpenNebula.
+     * @see Cluster#info(Client, int)
      */
     public OneResponse info()
     {
@@ -144,8 +216,8 @@ public class Cluster extends PoolElement
 
     /**
      * Deletes the cluster from OpenNebula.
-     * 
-     * @return A encapsulated response.
+     *
+     * @see Cluster#delete(Client, int)
      */
     public OneResponse delete()
     {
@@ -153,46 +225,122 @@ public class Cluster extends PoolElement
     }
 
     /**
-     * Adds a host to the cluster.
-     * 
-     * @param hid The host id (hid) of the host.
-     * @return If an error occurs the error message contains the reason.
+     * Replaces the cluster template.
+     *
+     * @param new_template New cluster template.
+     * @return If successful the message contains the cluster id.
      */
-    public OneResponse add(int hid)
+    public OneResponse update(String new_template)
     {
-        return add(client, id, hid);
+        return update(client, id, new_template);
     }
 
     /**
-     * Adds a host to the cluster.
-     * 
-     * @param host The Host to add.
-     * @return If an error occurs the error message contains the reason.
+     * Adds a Host to this Cluster
+     *
+     * @param hid Host ID.
+     * @return A encapsulated response.
      */
-    public OneResponse add(Host host)
+    public OneResponse addHost(int hid)
     {
-        return add(client, id, host.id());
+        return addHost(client, id, hid);
     }
 
     /**
-     * Removes a host from its cluster.
-     * 
-     * @param hid The host id (hid) of the host.
-     * @return If an error occurs the error message contains the reason.
+     * Deletes a Host from this Cluster
+     *
+     * @param hid Host ID.
+     * @return A encapsulated response.
      */
-    public OneResponse remove(int hid)
+    public OneResponse delHost(int hid)
     {
-        return remove(client, hid);
+        return delHost(client, id, hid);
     }
 
     /**
-     * Removes a host from its cluster.
-     * 
-     * @param host The Host to remove.
-     * @return If an error occurs the error message contains the reason.
+     * Adds a Datastore to this Cluster
+     *
+     * @param dsId Datastore ID.
+     * @return A encapsulated response.
      */
-    public OneResponse remove(Host host)
+    public OneResponse addDatastore(int dsId)
     {
-        return remove(client, host.id());
+        return addDatastore(client, id, dsId);
+    }
+
+    /**
+     * Deletes a Datastore from this Cluster
+     *
+     * @param dsId Datastore ID.
+     * @return A encapsulated response.
+     */
+    public OneResponse delDatastore(int dsId)
+    {
+        return delDatastore(client, id, dsId);
+    }
+
+    /**
+     * Adds a VNet to this Cluster
+     *
+     * @param vnetId VNet ID.
+     * @return A encapsulated response.
+     */
+    public OneResponse addVnet(int vnetId)
+    {
+        return addVnet(client, id, vnetId);
+    }
+
+    /**
+     * Deletes a VNet from this Cluster
+     *
+     * @param vnetId VNet ID.
+     * @return A encapsulated response.
+     */
+    public OneResponse delVnet(int vnetId)
+    {
+        return delVnet(client, id, vnetId);
+    }
+
+    // =================================
+    // Helpers
+    // =================================
+    
+    /**
+     * Returns whether or not the host is part of this cluster
+     *
+     * @param id The host ID.
+     * @return Whether or not the host is part of this cluster.
+     */
+    public boolean containsHost(int id)
+    {
+        return containsResource("HOSTS", id);
+    }
+    
+    /**
+     * Returns whether or not the datastore is part of this cluster
+     *
+     * @param id The datastore ID.
+     * @return Whether or not the datastore is part of this cluster.
+     */
+    public boolean containsDatastore(int id)
+    {
+        return containsResource("DATASTORES", id);
+    }
+
+    /**
+     * Returns whether or not the vnet is part of this cluster
+     *
+     * @param id The vnet ID.
+     * @return Whether or not the vnet is part of this cluster.
+     */
+    public boolean containsVnet(int id)
+    {
+        return containsResource("VNETS", id);
+    }
+
+    private boolean containsResource(String resource, int id)
+    {
+        String res = xpath(resource+"/ID[.="+id+"]");
+        return res != null && res.equals(""+id);
     }
 }

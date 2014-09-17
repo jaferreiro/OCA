@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2002-2010, OpenNebula Project Leads (OpenNebula.org)
+ * Copyright 2002-2013, OpenNebula Project Leads (OpenNebula.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,11 @@ public class VirtualMachine extends PoolElement{
     private static final String ACTION   = METHOD_PREFIX + "action";
     private static final String MIGRATE  = METHOD_PREFIX + "migrate";
     private static final String SAVEDISK = METHOD_PREFIX + "savedisk";
+    private static final String CHOWN    = METHOD_PREFIX + "chown";
+    private static final String CHMOD    = METHOD_PREFIX + "chmod";
+    private static final String MONITORING = METHOD_PREFIX + "monitoring";
+    private static final String ATTACH  = METHOD_PREFIX + "attach";
+    private static final String DETACH  = METHOD_PREFIX + "detach";
 
     private static final String[] VM_STATES =
     {
@@ -44,7 +49,8 @@ public class VirtualMachine extends PoolElement{
         "STOPPED",
         "SUSPENDED",
         "DONE",
-        "FAILED" };
+        "FAILED",
+        "POWEROFF" };
 
     private static final String[] SHORT_VM_STATES =
     {
@@ -55,7 +61,8 @@ public class VirtualMachine extends PoolElement{
         "stop",
         "susp",
         "done",
-        "fail" };
+        "fail",
+        "poff" };
 
     private static final String[] LCM_STATE =
     {
@@ -74,8 +81,14 @@ public class VirtualMachine extends PoolElement{
         "SHUTDOWN",
         "CANCEL",
         "FAILURE",
-        "DELETE",
-        "UNKNOWN" };
+        "CLEANUP",
+        "UNKNOWN",
+        "HOTPLUG",
+        "SHUTDOWN_POWEROFF",
+        "BOOT_UNKNOWN",
+        "BOOT_POWEROFF",
+        "BOOT_SUSPENDED",
+        "BOOT_STOPPED" };
 
     private static final String[] SHORT_LCM_STATES =
     {
@@ -94,8 +107,14 @@ public class VirtualMachine extends PoolElement{
         "shut",
         "shut",
         "fail",
-        "dele",
-        "unkn" };
+        "clea",
+        "unkn",
+        "hotp",
+        "poff",
+        "boot",
+        "boot",
+        "boot",
+        "boot" };
 
     /**
      * Creates a new VM representation.
@@ -115,7 +134,6 @@ public class VirtualMachine extends PoolElement{
     {
         super(xmlElement, client);
     }
-
 
     // =================================
     // Static XML-RPC methods
@@ -147,6 +165,113 @@ public class VirtualMachine extends PoolElement{
         return client.call(INFO, id);
     }
 
+    /**
+     * Changes the owner/group
+     *
+     * @param client XML-RPC Client.
+     * @param id The virtual machine id (vid) of the target instance.
+     * @param uid The new owner user ID. Set it to -1 to leave the current one.
+     * @param gid The new group ID. Set it to -1 to leave the current one.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public static OneResponse chown(Client client, int id, int uid, int gid)
+    {
+        return client.call(CHOWN, id, uid, gid);
+    }
+
+    /**
+     * Changes the VM permissions
+     *
+     * @param client XML-RPC Client.
+     * @param id The VM id of the target VM.
+     * @param owner_u 1 to allow, 0 deny, -1 do not change
+     * @param owner_m 1 to allow, 0 deny, -1 do not change
+     * @param owner_a 1 to allow, 0 deny, -1 do not change
+     * @param group_u 1 to allow, 0 deny, -1 do not change
+     * @param group_m 1 to allow, 0 deny, -1 do not change
+     * @param group_a 1 to allow, 0 deny, -1 do not change
+     * @param other_u 1 to allow, 0 deny, -1 do not change
+     * @param other_m 1 to allow, 0 deny, -1 do not change
+     * @param other_a 1 to allow, 0 deny, -1 do not change
+     * @return If an error occurs the error message contains the reason.
+     */
+    public static OneResponse chmod(Client client, int id,
+                                    int owner_u, int owner_m, int owner_a,
+                                    int group_u, int group_m, int group_a,
+                                    int other_u, int other_m, int other_a)
+    {
+        return chmod(client, CHMOD, id,
+                owner_u, owner_m, owner_a,
+                group_u, group_m, group_a,
+                other_u, other_m, other_a);
+    }
+
+    /**
+     * Changes the permissions
+     *
+     * @param client XML-RPC Client.
+     * @param id The id of the target object.
+     * @param octet Permissions octed , e.g. 640
+     * @return If an error occurs the error message contains the reason.
+     */
+    public static OneResponse chmod(Client client, int id, String octet)
+    {
+        return chmod(client, CHMOD, id, octet);
+    }
+
+    /**
+     * Changes the permissions
+     *
+     * @param client XML-RPC Client.
+     * @param id The id of the target object.
+     * @param octet Permissions octed , e.g. 640
+     * @return If an error occurs the error message contains the reason.
+     */
+    public static OneResponse chmod(Client client, int id, int octet)
+    {
+        return chmod(client, CHMOD, id, octet);
+    }
+
+    /**
+     * Retrieves the monitoring information of the given VM, in XML
+     *
+     * @param client XML-RPC Client.
+     * @param id The virtual machine id (vid) of the target instance.
+     * @return If successful the message contains the string
+     * with the monitoring information returned by OpenNebula.
+     */
+    public static OneResponse monitoring(Client client, int id)
+    {
+        return client.call(MONITORING, id);
+    }
+
+    /**
+     * Attaches a disk to a running VM
+     *
+     * @param client XML-RPC Client.
+     * @param id The virtual machine id (vid) of the target instance.
+     * @param diskTemplate Template containing the new DISK definition
+     * @return If an error occurs the error message contains the reason.
+     */
+    public static OneResponse attachdisk(Client client, int id,
+            String diskTemplate)
+    {
+        return client.call(ATTACH, id, diskTemplate);
+    }
+
+    /**
+     * Detaches a disk to a running VM
+     *
+     * @param client XML-RPC Client.
+     * @param id The virtual machine id (vid) of the target instance.
+     * @param diskId The DISK_ID of the disk to detach
+     * @return If an error occurs the error message contains the reason.
+     */
+    public static OneResponse detachdisk(Client client, int id,
+            int diskId)
+    {
+        return client.call(DETACH, id, diskId);
+    }
 
     // =================================
     // Instanced object XML-RPC methods
@@ -183,6 +308,7 @@ public class VirtualMachine extends PoolElement{
      * It is recommended to use the helper methods instead:
      * <ul>
      * <li>{@link VirtualMachine#shutdown()}</li>
+     * <li>{@link VirtualMachine#reboot()}</li>
      * <li>{@link VirtualMachine#cancel()}</li>
      * <li>{@link VirtualMachine#hold()}</li>
      * <li>{@link VirtualMachine#release()}</li>
@@ -191,11 +317,12 @@ public class VirtualMachine extends PoolElement{
      * <li>{@link VirtualMachine#resume()}</li>
      * <li>{@link VirtualMachine#finalizeVM()}</li>
      * <li>{@link VirtualMachine#restart()}</li>
+     * <li>{@link VirtualMachine#poweroff()}</li>
      * </ul>
      *
      * @param action The action name to be performed, can be:<br/>
-     * "shutdown", "hold", "release", "stop", "cancel", "suspend",
-     * "resume", "restart", "finalize".
+     * "shutdown", "reboot", "hold", "release", "stop", "cancel", "suspend",
+     * "resume", "restart", "finalize","poweroff".
      * @return If an error occurs the error message contains the reason.
      */
     protected OneResponse action(String action)
@@ -220,14 +347,143 @@ public class VirtualMachine extends PoolElement{
     /**
      * Sets the specified vm's disk to be saved in a new image when the
      * VirtualMachine shutdowns.
-     * 
+     *
      * @param diskId ID of the disk to be saved.
-     * @param imageId ID of the image where the disk will be saved.
+     * @param imageName Name of the new Image that will be created.
      * @return If an error occurs the error message contains the reason.
      */
-    public OneResponse savedisk(int diskId, int imageId)
+    public OneResponse savedisk(int diskId, String imageName)
     {
-        return client.call(SAVEDISK, diskId, imageId);
+        return savedisk(diskId, imageName, "");
+    }
+
+    /**
+     * Sets the specified vm's disk to be saved in a new image when the
+     * VirtualMachine shutdowns.
+     *
+     * @param diskId ID of the disk to be saved.
+     * @param imageName Name of the new Image that will be created.
+     * @param imageType Type of the new image. Set to empty string to use
+     * the default type
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse savedisk(int diskId, String imageName, String imageType)
+    {
+        return client.call(SAVEDISK, id ,diskId, imageName, imageType);
+    }
+
+    /**
+     * Changes the owner/group
+     *
+     * @param uid The new owner user ID. Set it to -1 to leave the current one.
+     * @param gid The new group ID. Set it to -1 to leave the current one.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse chown(int uid, int gid)
+    {
+        return chown(client, id, uid, gid);
+    }
+
+    /**
+     * Changes the owner
+     *
+     * @param uid The new owner user ID.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse chown(int uid)
+    {
+        return chown(uid, -1);
+    }
+
+    /**
+     * Changes the group
+     *
+     * @param gid The new group ID.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse chgrp(int gid)
+    {
+        return chown(-1, gid);
+    }
+
+
+    /**
+     * Changes the VM permissions
+     *
+     * @param owner_u 1 to allow, 0 deny, -1 do not change
+     * @param owner_m 1 to allow, 0 deny, -1 do not change
+     * @param owner_a 1 to allow, 0 deny, -1 do not change
+     * @param group_u 1 to allow, 0 deny, -1 do not change
+     * @param group_m 1 to allow, 0 deny, -1 do not change
+     * @param group_a 1 to allow, 0 deny, -1 do not change
+     * @param other_u 1 to allow, 0 deny, -1 do not change
+     * @param other_m 1 to allow, 0 deny, -1 do not change
+     * @param other_a 1 to allow, 0 deny, -1 do not change
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse chmod(int owner_u, int owner_m, int owner_a,
+                             int group_u, int group_m, int group_a,
+                             int other_u, int other_m, int other_a)
+    {
+        return chmod(client, id,
+                    owner_u, owner_m, owner_a,
+                    group_u, group_m, group_a,
+                    other_u, other_m, other_a);
+    }
+
+    /**
+     * Changes the permissions
+     *
+     * @param octet Permissions octed , e.g. 640
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse chmod(String octet)
+    {
+        return chmod(client, id, octet);
+    }
+
+    /**
+     * Changes the permissions
+     *
+     * @param octet Permissions octed , e.g. 640
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse chmod(int octet)
+    {
+        return chmod(client, id, octet);
+    }
+
+    /**
+     * Retrieves the monitoring information of the given VM, in XML
+     *
+     * @return If successful the message contains the string
+     * with the monitoring information returned by OpenNebula.
+     */
+    public OneResponse monitoring()
+    {
+        return monitoring(client, id);
+    }
+
+    /**
+     * Attaches a disk to a running VM
+     *
+     * @param diskTemplate Template containing the new DISK definition
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse attachdisk(String diskTemplate)
+    {
+        return attachdisk(client, id, diskTemplate);
+    }
+
+    /**
+     * Detaches a disk to a running VM
+     *
+     * @param diskId The DISK_ID of the disk to detach
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse detachdisk(int diskId)
+    {
+        return detachdisk(client, id, diskId);
     }
 
     // =================================
@@ -241,6 +497,33 @@ public class VirtualMachine extends PoolElement{
     public OneResponse shutdown()
     {
         return action("shutdown");
+    }
+
+    /**
+     * Powers off a running VM.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse poweroff()
+    {
+        return action("poweroff");
+    }
+
+    /**
+     * Reboots a running VM.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse reboot()
+    {
+        return action("reboot");
+    }
+
+    /**
+     * Resets a running VM.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse reset()
+    {
+        return action("reset");
     }
 
     /**
@@ -310,12 +593,39 @@ public class VirtualMachine extends PoolElement{
     }
 
     /**
-     * Resubmits the virtual machine after failure.
+     * Forces a re-deployment of a VM in UNKNOWN or BOOT states.
      * @return If an error occurs the error message contains the reason.
      */
     public OneResponse restart()
     {
-        return action("shutdown");
+        return action("restart");
+    }
+
+    /**
+     * Resubmits a VM to PENDING state.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse resubmit()
+    {
+        return action("resubmit");
+    }
+
+    /**
+     * Sets the re-scheduling flag for the VM
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse resched()
+    {
+        return action("resched");
+    }
+
+    /**
+     * Unsets the re-scheduling flag for the VM
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse unresched()
+    {
+        return action("unresched");
     }
 
     /**
