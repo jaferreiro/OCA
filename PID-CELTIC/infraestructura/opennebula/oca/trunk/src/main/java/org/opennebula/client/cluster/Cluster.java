@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2002-2013, OpenNebula Project Leads (OpenNebula.org)
+ * Copyright 2002-2014, OpenNebula Project (OpenNebula.org), C12G Labs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ public class Cluster extends PoolElement{
     private static final String DELDATASTORE    = METHOD_PREFIX + "deldatastore";
     private static final String ADDVNET         = METHOD_PREFIX + "addvnet";
     private static final String DELVNET         = METHOD_PREFIX + "delvnet";
+    private static final String RENAME          = METHOD_PREFIX + "rename";
 
     /**
      * Creates a new Cluster representation.
@@ -106,11 +107,13 @@ public class Cluster extends PoolElement{
      * @param client XML-RPC Client.
      * @param id The id of the target cluster we want to modify.
      * @param new_template New template contents.
+     * @param append True to append new attributes instead of replace the whole template
      * @return If successful the message contains the cluster id.
      */
-    public static OneResponse update(Client client, int id, String new_template)
+    public static OneResponse update(Client client, int id, String new_template,
+        boolean append)
     {
-        return client.call(UPDATE, id, new_template);
+        return client.call(UPDATE, id, new_template, append ? 1 : 0);
     }
 
     /**
@@ -197,6 +200,19 @@ public class Cluster extends PoolElement{
         return client.call(DELVNET, id, vnetId);
     }
 
+    /**
+     * Renames this Cluster.
+     *
+     * @param client XML-RPC Client.
+     * @param id The image id of the target host we want to modify.
+     * @param name New name for the Cluster
+     * @return If successful the message contains the cluster id.
+     */
+    public static OneResponse rename(Client client, int id, String name)
+    {
+        return client.call(RENAME, id, name);
+    }
+
     // =================================
     // Instanced object XML-RPC methods
     // =================================
@@ -223,7 +239,7 @@ public class Cluster extends PoolElement{
     {
         return delete(client, id);
     }
-
+    
     /**
      * Replaces the cluster template.
      *
@@ -232,7 +248,19 @@ public class Cluster extends PoolElement{
      */
     public OneResponse update(String new_template)
     {
-        return update(client, id, new_template);
+        return update(new_template, false);
+    }
+
+    /**
+     * Replaces the cluster template.
+     *
+     * @param new_template New cluster template.
+     * @param append True to append new attributes instead of replace the whole template
+     * @return If successful the message contains the cluster id.
+     */
+    public OneResponse update(String new_template, boolean append)
+    {
+        return update(client, id, new_template, append);
     }
 
     /**
@@ -299,6 +327,17 @@ public class Cluster extends PoolElement{
     public OneResponse delVnet(int vnetId)
     {
         return delVnet(client, id, vnetId);
+    }
+
+    /**
+     * Renames this Cluster
+     *
+     * @param name New name for the Cluster.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse rename(String name)
+    {
+        return rename(client, id, name);
     }
 
     // =================================

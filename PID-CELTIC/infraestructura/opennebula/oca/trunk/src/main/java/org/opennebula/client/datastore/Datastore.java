@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2002-2013, OpenNebula Project Leads (OpenNebula.org)
+ * Copyright 2002-2014, OpenNebula Project (OpenNebula.org), C12G Labs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,11 @@ public class Datastore extends PoolElement
     private static final String UPDATE   = METHOD_PREFIX + "update";
     private static final String CHOWN    = METHOD_PREFIX + "chown";
     private static final String CHMOD    = METHOD_PREFIX + "chmod";
+    private static final String RENAME   = METHOD_PREFIX + "rename";
+
+    private static final String[] DATASTORE_TYPES = {"IMAGE", "SYSTEM", "FILE"};
+
+    private static final String[] SHORT_DATASTORE_TYPES = {"img", "sys", "fil"};
 
     /**
      * Creates a new Datastore representation.
@@ -117,11 +122,13 @@ public class Datastore extends PoolElement
      * @param client XML-RPC Client.
      * @param id The id of the target datastore we want to modify.
      * @param new_template New datastore contents.
+     * @param append True to append new attributes instead of replace the whole template
      * @return If successful the message contains the datastore id.
      */
-    public static OneResponse update(Client client, int id, String new_template)
+    public static OneResponse update(Client client, int id, String new_template,
+        boolean append)
     {
-        return client.call(UPDATE, id, new_template);
+        return client.call(UPDATE, id, new_template, append ? 1 : 0);
     }
 
     /**
@@ -206,6 +213,19 @@ public class Datastore extends PoolElement
         return chmod(client, CHMOD, id, octet);
     }
 
+    /**
+     * Renames this Datastore.
+     *
+     * @param client XML-RPC Client.
+     * @param id The image id of the target host we want to modify.
+     * @param name New name for the Datastore
+     * @return If successful the message contains the datastore id.
+     */
+    public static OneResponse rename(Client client, int id, String name)
+    {
+        return client.call(RENAME, id, name);
+    }
+
     // =================================
     // Instanced object XML-RPC methods
     // =================================
@@ -241,7 +261,19 @@ public class Datastore extends PoolElement
      */
     public OneResponse update(String new_template)
     {
-        return update(client, id, new_template);
+        return update(new_template, false);
+    }
+
+    /**
+     * Replaces the datastore template.
+     *
+     * @param new_template New datastore template.
+     * @param append True to append new attributes instead of replace the whole template
+     * @return If successful the message contains the datastore id.
+     */
+    public OneResponse update(String new_template, boolean append)
+    {
+        return update(client, id, new_template, append);
     }
 
     /**
@@ -355,9 +387,52 @@ public class Datastore extends PoolElement
         return chmod(client, id, octet);
     }
 
+    /**
+     * Renames this Datastore
+     *
+     * @param name New name for the Datastore.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse rename(String name)
+    {
+        return rename(client, id, name);
+    }
+
     // =================================
     // Helpers
     // =================================
+    /**
+     * Returns the type of the Datastore.
+     *
+     * @return The type of the Datastore.
+     */
+    public int type()
+    {
+        String state = xpath("TYPE");
+        return state != null ? Integer.parseInt( state ) : -1;
+    }
+
+    /**
+     * Returns the type of the Datastore as a String.
+     *
+     * @return The type of the Datastore as a String.
+     */
+    public String typeStr()
+    {
+        int type = type();
+        return type != -1 ? DATASTORE_TYPES[type] : null;
+    }
+
+    /**
+     * Returns the type of the Datastore as a short String.
+     *
+     * @return The type of the Datastore as a short String.
+     */
+    public String shortTypeStr()
+    {
+        int type = type();
+        return type != -1 ? SHORT_DATASTORE_TYPES[type] : null;
+    }
 
     /**
      * Returns whether or not the image is part of this datastore

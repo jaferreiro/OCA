@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2002-2013, OpenNebula Project Leads (OpenNebula.org)
+ * Copyright 2002-2014, OpenNebula Project (OpenNebula.org), C12G Labs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,8 @@ public class User extends PoolElement{
     private static final String CHAUTH          = METHOD_PREFIX + "chauth";
     private static final String UPDATE          = METHOD_PREFIX + "update";
     private static final String QUOTA           = METHOD_PREFIX + "quota";
+    private static final String ADDGROUP        = METHOD_PREFIX + "addgroup";
+    private static final String DELGROUP        = METHOD_PREFIX + "delgroup";
 
     /**
      * Creates a new User representation.
@@ -147,6 +149,33 @@ public class User extends PoolElement{
     }
 
     /**
+     * Adds the User to a secondary group
+     *
+     * @param client XML-RPC Client.
+     * @param id The user id (uid) of the target user we want to modify.
+     * @param gid The new group ID.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public static OneResponse addgroup(Client client, int id, int gid)
+    {
+        return client.call(ADDGROUP, id, gid);
+    }
+
+    /**
+     * Removes the User from a secondary group. Fails if the
+     * group is the main one
+     *
+     * @param client XML-RPC Client.
+     * @param id The user id (uid) of the target user we want to modify.
+     * @param gid The group ID.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public static OneResponse delgroup(Client client, int id, int gid)
+    {
+        return client.call(DELGROUP, id, gid);
+    }
+
+    /**
      * Changes the auth driver and the password of the given user
      *
      * @param client XML-RPC Client.
@@ -170,11 +199,13 @@ public class User extends PoolElement{
      * @param client XML-RPC Client.
      * @param id The user id of the target user we want to modify.
      * @param new_template New template contents.
+     * @param append True to append new attributes instead of replace the whole template
      * @return If successful the message contains the user id.
      */
-    public static OneResponse update(Client client, int id, String new_template)
+    public static OneResponse update(Client client, int id, String new_template,
+        boolean append)
     {
-        return client.call(UPDATE, id, new_template);
+        return client.call(UPDATE, id, new_template, append ? 1 : 0);
     }
 
     /**
@@ -241,6 +272,29 @@ public class User extends PoolElement{
     }
 
     /**
+     * Adds the User to a secondary group
+     *
+     * @param gid The new group ID.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse addgroup(int gid)
+    {
+        return addgroup(client, id, gid);
+    }
+
+    /**
+     * Removes the User from a secondary group. Fails if the
+     * group is the main one
+     *
+     * @param gid The group ID.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse delgroup(int gid)
+    {
+        return delgroup(client, id, gid);
+    }
+
+    /**
      * Changes the auth driver and the password of the given user
      *
      * @param auth The new auth driver.
@@ -272,7 +326,19 @@ public class User extends PoolElement{
      */
     public OneResponse update(String new_template)
     {
-        return update(client, id, new_template);
+        return update(new_template, false);
+    }
+
+    /**
+     * Replaces the user template contents.
+     *
+     * @param new_template New template contents.
+     * @param append True to append new attributes instead of replace the whole template
+     * @return If successful the message contains the user id.
+     */
+    public OneResponse update(String new_template, boolean append)
+    {
+        return update(client, id, new_template, append);
     }
 
     /**
