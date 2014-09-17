@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.opennebula.client.image;
+package org.opennebula.client.template;
 
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -21,43 +21,28 @@ import org.opennebula.client.PoolElement;
 import org.w3c.dom.Node;
 
 /**
- * This class represents an OpenNebula image.
+ * This class represents an OpenNebula template.
  * It also offers static XML-RPC call wrappers.
  */
-public class Image extends PoolElement
+public class Template extends PoolElement
 {
 
-    private static final String METHOD_PREFIX = "image.";
-    private static final String ALLOCATE    = METHOD_PREFIX + "allocate";
-    private static final String INFO        = METHOD_PREFIX + "info";
-    private static final String DELETE      = METHOD_PREFIX + "delete";
-    private static final String UPDATE      = METHOD_PREFIX + "update";
-    private static final String ENABLE      = METHOD_PREFIX + "enable";
-    private static final String PERSISTENT  = METHOD_PREFIX + "persistent";
-    private static final String CHOWN       = METHOD_PREFIX + "chown";
-    private static final String CHMOD       = METHOD_PREFIX + "chmod";
-    private static final String CHTYPE      = METHOD_PREFIX + "chtype";
-    private static final String CLONE       = METHOD_PREFIX + "clone";
-
-    private static final String[] IMAGE_STATES =
-        {"INIT", "READY", "USED", "DISABLED", "LOCKED",
-        "ERROR", "CLONE", "DELETE", "USED_PERS"};
-
-    private static final String[] SHORT_IMAGE_STATES =
-        {"init", "rdy", "used", "disa", "lock", "err", "clon", "dele", "used"};
-
-    private static final String[] IMAGE_TYPES =
-        {"OS", "CDROM", "DATABLOCK"};
-
-    private static final String[] SHORT_IMAGE_TYPES =
-        {"OS", "CD", "DB"};
+    private static final String METHOD_PREFIX = "template.";
+    private static final String ALLOCATE = METHOD_PREFIX + "allocate";
+    private static final String INFO     = METHOD_PREFIX + "info";
+    private static final String DELETE   = METHOD_PREFIX + "delete";
+    private static final String UPDATE   = METHOD_PREFIX + "update";
+    private static final String CHOWN    = METHOD_PREFIX + "chown";
+    private static final String CHMOD    = METHOD_PREFIX + "chmod";
+    private static final String INSTANTIATE = METHOD_PREFIX + "instantiate";
+    private static final String CLONE    = METHOD_PREFIX + "clone";
 
     /**
-     * Creates a new Image representation.
-     * @param id The image id.
+     * Creates a new Template representation.
+     * @param id The template id.
      * @param client XML-RPC Client.
      */
-    public Image(int id, Client client)
+    public Template(int id, Client client)
     {
         super(id, client);
     }
@@ -65,7 +50,7 @@ public class Image extends PoolElement
     /**
      * @see PoolElement
      */
-    protected Image(Node xmlElement, Client client)
+    protected Template(Node xmlElement, Client client)
     {
         super(xmlElement, client);
     }
@@ -74,30 +59,25 @@ public class Image extends PoolElement
     // Static XML-RPC methods
     // =================================
 
+
     /**
-     * Allocates a new Image in OpenNebula.
+     * Allocates a new Template in OpenNebula.
      *
      * @param client XML-RPC Client.
-     * @param description A string containing the template of the image.
-     * @param datastoreId The cluster ID. If it is -1, this image
-     * won't be added to any cluster.
-     *
+     * @param description A string containing the template of the template.
      * @return If successful the message contains the associated
-     * id generated for this Image.
+     * id generated for this Template.
      */
-    public static OneResponse allocate(
-            Client client,
-            String description,
-            int    datastoreId)
+    public static OneResponse allocate(Client client, String description)
     {
-        return client.call(ALLOCATE, description, datastoreId);
+        return client.call(ALLOCATE, description);
     }
 
     /**
-     * Retrieves the information of the given Image.
+     * Retrieves the information of the given Template.
      *
      * @param client XML-RPC Client.
-     * @param id The image id for the image to retrieve the information from
+     * @param id The template id for the template to retrieve the information from
      * @return If successful the message contains the string
      * with the information returned by OpenNebula.
      */
@@ -107,10 +87,10 @@ public class Image extends PoolElement
     }
 
     /**
-     * Deletes an image from OpenNebula.
+     * Deletes a template from OpenNebula.
      *
      * @param client XML-RPC Client.
-     * @param id The image id of the target image we want to delete.
+     * @param id The template id of the target template we want to delete.
      * @return A encapsulated response.
      */
     public static OneResponse delete(Client client, int id)
@@ -122,9 +102,9 @@ public class Image extends PoolElement
      * Replaces the template contents.
      *
      * @param client XML-RPC Client.
-     * @param id The image id of the target image we want to modify.
-     * @param new_template New template contents
-     * @return If successful the message contains the image id.
+     * @param id The template id of the target template we want to modify.
+     * @param new_template New template contents.
+     * @return If successful the message contains the template id.
      */
     public static OneResponse update(Client client, int id, String new_template)
     {
@@ -132,38 +112,12 @@ public class Image extends PoolElement
     }
 
     /**
-     * Enables or disables an image.
+     * Publishes or unpublishes a template.
      *
      * @param client XML-RPC Client.
-     * @param id The image id of the target image we want to modify.
-     * @param enable True for enabling, false for disabling.
-     * @return If successful the message contains the image id.
-     */
-    public static OneResponse enable(Client client, int id, boolean enable)
-    {
-        return client.call(ENABLE, id, enable);
-    }
-
-    /**
-     * Sets the Image as persistent or not persistent.
-     *
-     * @param client XML-RPC Client.
-     * @param id The image id of the target image we want to modify.
-     * @param persistent True to make it persistent, false non-persistent
-     * @return If successful the message contains the image id.
-     */
-    public static OneResponse persistent(Client client, int id, boolean persistent)
-    {
-        return client.call(PERSISTENT, id, persistent);
-    }
-
-    /**
-     * Publishes or unpublishes an image.
-     *
-     * @param client XML-RPC Client.
-     * @param id The image id of the target image we want to modify.
+     * @param id The template id of the target template we want to modify.
      * @param publish True for publishing, false for unpublishing.
-     * @return If successful the message contains the image id.
+     * @return If successful the message contains the template id.
      */
     public static OneResponse publish(Client client, int id, boolean publish)
     {
@@ -174,9 +128,9 @@ public class Image extends PoolElement
 
     /**
      * Changes the owner/group
-     *
+     * 
      * @param client XML-RPC Client.
-     * @param id The image id of the target image we want to modify.
+     * @param id The template id of the target template we want to modify.
      * @param uid The new owner user ID. Set it to -1 to leave the current one.
      * @param gid The new group ID. Set it to -1 to leave the current one.
      * @return If an error occurs the error message contains the reason.
@@ -187,10 +141,10 @@ public class Image extends PoolElement
     }
 
     /**
-     * Changes the Image permissions
-     *
+     * Changes the template permissions
+     * 
      * @param client XML-RPC Client.
-     * @param id The image id of the target image we want to modify.
+     * @param id The template id of the target template.
      * @param owner_u 1 to allow, 0 deny, -1 do not change
      * @param owner_m 1 to allow, 0 deny, -1 do not change
      * @param owner_a 1 to allow, 0 deny, -1 do not change
@@ -208,14 +162,14 @@ public class Image extends PoolElement
                                     int other_u, int other_m, int other_a)
     {
         return chmod(client, CHMOD, id,
-                owner_u, owner_m, owner_a,
-                group_u, group_m, group_a,
-                other_u, other_m, other_a);
+                            owner_u, owner_m, owner_a,
+                            group_u, group_m, group_a,
+                            other_u, other_m, other_a);
     }
 
     /**
      * Changes the permissions
-     *
+     * 
      * @param client XML-RPC Client.
      * @param id The id of the target object.
      * @param octet Permissions octed , e.g. 640
@@ -228,7 +182,7 @@ public class Image extends PoolElement
 
     /**
      * Changes the permissions
-     *
+     * 
      * @param client XML-RPC Client.
      * @param id The id of the target object.
      * @param octet Permissions octed , e.g. 640
@@ -240,25 +194,25 @@ public class Image extends PoolElement
     }
 
     /**
-     * Changes the Image type
-     *
+     * Creates a VM instance from a Template
+     * 
      * @param client XML-RPC Client.
-     * @param id The image id of the target image we want to modify.
-     * @param type The new Image type
-     * @return If an error occurs the error message contains the reason.
+     * @param id The template id of the target template.
+     * @param name A string containing the name of the VM instance, can be empty.
+     * @return If successful the message contains the VM Instance ID.
      */
-    public static OneResponse chtype(Client client, int id, String type)
+    public static OneResponse instantiate(Client client, int id, String name)
     {
-        return client.call(CHTYPE, id, type);
+        return client.call(INSTANTIATE, id, name);
     }
 
     /**
-     * Clones this Image into a new one
+     * Clones this template into a new one
      *
      * @param client XML-RPC Client.
-     * @param id The Image id of the target Image.
-     * @param name Name for the new Image.
-     * @return If successful the message contains the new Image ID.
+     * @param id The template id of the target template.
+     * @param name Name for the new template.
+     * @return If successful the message contains the new template ID.
      */
     public static OneResponse clone(Client client, int id, String name)
     {
@@ -270,7 +224,7 @@ public class Image extends PoolElement
     // =================================
 
     /**
-     * Retrieves the information of the Image.
+     * Retrieves the information of the Template.
      *
      * @return If successful the message contains the string
      * with the information returned by OpenNebula.
@@ -283,7 +237,7 @@ public class Image extends PoolElement
     }
 
     /**
-     * Deletes the image from OpenNebula.
+     * Deletes the template from OpenNebula.
      *
      * @return A encapsulated response.
      */
@@ -295,8 +249,8 @@ public class Image extends PoolElement
     /**
      * Replaces the template contents.
      *
-     * @param new_template New template contents
-     * @return If successful the message contains the image id.
+     * @param new_template New template contents.
+     * @return If successful the message contains the template id.
      */
     public OneResponse update(String new_template)
     {
@@ -304,72 +258,10 @@ public class Image extends PoolElement
     }
 
     /**
-     * Enables or disables the image.
-     *
-     * @param enable True for enabling, false for disabling.
-     * @return If successful the message contains the image id.
-     */
-    public OneResponse enable(boolean enable)
-    {
-        return enable(client, id, enable);
-    }
-
-    /**
-     * Enables the image.
-     *
-     * @return If successful the message contains the image id.
-     */
-    public OneResponse enable()
-    {
-        return enable(true);
-    }
-
-    /**
-     * Disables the image.
-     *
-     * @return If successful the message contains the image id.
-     */
-    public OneResponse disable()
-    {
-        return enable(false);
-    }
-
-    /**
-     * Sets the Image as persistent or not persistent.
-     *
-     * @param persistent True for enabling, false for disabling.
-     * @return If successful the message contains the image id.
-     */
-    public OneResponse persistent(boolean persistent)
-    {
-        return persistent(client, id, persistent);
-    }
-
-    /**
-     * Sets the Image as persistent
-     *
-     * @return If successful the message contains the image id.
-     */
-    public OneResponse persistent()
-    {
-        return persistent(true);
-    }
-
-    /**
-     * Sets the Image as persistent or not persistent.
-     *
-     * @return If successful the message contains the image id.
-     */
-    public OneResponse nonpersistent()
-    {
-        return persistent(false);
-    }
-
-    /**
-     * Publishes or unpublishes the image.
+     * Publishes or unpublishes the template.
      *
      * @param publish True for publishing, false for unpublishing.
-     * @return If successful the message contains the image id.
+     * @return If successful the message contains the template id.
      */
     public OneResponse publish(boolean publish)
     {
@@ -377,9 +269,9 @@ public class Image extends PoolElement
     }
 
     /**
-     * Publishes the image.
+     * Publishes the template.
      *
-     * @return If successful the message contains the image id.
+     * @return If successful the message contains the template id.
      */
     public OneResponse publish()
     {
@@ -387,9 +279,9 @@ public class Image extends PoolElement
     }
 
     /**
-     * Unpublishes the image.
+     * Unpublishes the template.
      *
-     * @return If successful the message contains the image id.
+     * @return If successful the message contains the template id.
      */
     public OneResponse unpublish()
     {
@@ -398,7 +290,7 @@ public class Image extends PoolElement
 
     /**
      * Changes the owner/group
-     *
+     * 
      * @param uid The new owner user ID. Set it to -1 to leave the current one.
      * @param gid The new group ID. Set it to -1 to leave the current one.
      * @return If an error occurs the error message contains the reason.
@@ -410,7 +302,7 @@ public class Image extends PoolElement
 
     /**
      * Changes the owner
-     *
+     * 
      * @param uid The new owner user ID.
      * @return If an error occurs the error message contains the reason.
      */
@@ -421,7 +313,7 @@ public class Image extends PoolElement
 
     /**
      * Changes the group
-     *
+     * 
      * @param gid The new group ID.
      * @return If an error occurs the error message contains the reason.
      */
@@ -431,8 +323,8 @@ public class Image extends PoolElement
     }
 
     /**
-     * Changes the Image permissions
-     *
+     * Changes the template permissions
+     * 
      * @param owner_u 1 to allow, 0 deny, -1 do not change
      * @param owner_m 1 to allow, 0 deny, -1 do not change
      * @param owner_a 1 to allow, 0 deny, -1 do not change
@@ -477,21 +369,31 @@ public class Image extends PoolElement
     }
 
     /**
-     * Changes the Image type
-     *
-     * @param type The new Image type
-     * @return If an error occurs the error message contains the reason.
+     * Creates a VM instance from a Template
+     * 
+     * @param name A string containing the name of the VM instance, can be empty.
+     * @return If successful the message contains the VM Instance ID.
      */
-    public OneResponse chtype(String type)
+    public OneResponse instantiate(String name)
     {
-        return chtype(client, id, type);
+        return instantiate(client, id, name);
     }
 
     /**
-     * Clones this Image into a new one
+     * Creates a VM instance from a Template
+     * 
+     * @return If successful the message contains the VM Instance ID.
+     */
+    public OneResponse instantiate()
+    {
+        return instantiate(client, id, "");
+    }
+
+    /**
+     * Clones this template into a new one
      *
-     * @param name Name for the new Image.
-     * @return If successful the message contains the new Image ID.
+     * @param name Name for the new template.
+     * @return If successful the message contains the new template ID.
      */
     public OneResponse clone(String name)
     {
@@ -501,73 +403,4 @@ public class Image extends PoolElement
     // =================================
     // Helpers
     // =================================
-
-    /**
-     * Returns the state of the Image.
-     * <br/>
-     * The method {@link Image#info()} must be called before.
-     *
-     * @return The state of the Image.
-     */
-    public String stateString()
-    {
-        int state = state();
-        return state != -1 ? IMAGE_STATES[state] : null;
-    }
-
-    /**
-     * Returns the short length string state of the Image.
-     * <br/>
-     * The method {@link Image#info()} must be called before.
-     *
-     * @return The short length string state of the Image.
-     */
-    public String shortStateStr()
-    {
-        int state = state();
-        return state != -1 ? SHORT_IMAGE_STATES[state] : null;
-    }
-
-    /**
-     * Returns the type of the Image.
-     *
-     * @return The type of the Image.
-     */
-    public int type()
-    {
-        String state = xpath("TYPE");
-        return state != null ? Integer.parseInt( state ) : -1;
-    }
-
-    /**
-     * Returns the type of the Image as a String.
-     *
-     * @return The type of the Image as a String.
-     */
-    public String typeStr()
-    {
-        int type = type();
-        return type != -1 ? IMAGE_TYPES[type] : null;
-    }
-
-    /**
-     * Returns the type of the Image as a short String.
-     *
-     * @return The type of the Image as a short String.
-     */
-    public String shortTypeStr()
-    {
-        int type = type();
-        return type != -1 ? SHORT_IMAGE_TYPES[type] : null;
-    }
-
-    /**
-     * Returns true if the image is enabled.
-     *
-     * @return True if the image is enabled.
-     */
-    public boolean isEnabled()
-    {
-        return state() != 3;
-    }
 }
