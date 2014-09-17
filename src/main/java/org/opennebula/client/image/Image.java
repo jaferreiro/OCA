@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2002-2013, OpenNebula Project Leads (OpenNebula.org)
+ * Copyright 2002-2014, OpenNebula Project (OpenNebula.org), C12G Labs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ public class Image extends PoolElement
     private static final String CHMOD       = METHOD_PREFIX + "chmod";
     private static final String CHTYPE      = METHOD_PREFIX + "chtype";
     private static final String CLONE       = METHOD_PREFIX + "clone";
+    private static final String RENAME      = METHOD_PREFIX + "rename";
 
     private static final String[] IMAGE_STATES =
         {"INIT", "READY", "USED", "DISABLED", "LOCKED",
@@ -47,10 +48,10 @@ public class Image extends PoolElement
         {"init", "rdy", "used", "disa", "lock", "err", "clon", "dele", "used"};
 
     private static final String[] IMAGE_TYPES =
-        {"OS", "CDROM", "DATABLOCK"};
+        {"OS", "CDROM", "DATABLOCK", "KERNEL", "RAMDISK", "CONTEXT"};
 
     private static final String[] SHORT_IMAGE_TYPES =
-        {"OS", "CD", "DB"};
+        {"OS", "CD", "DB", "KL", "RD", "CX"};
 
     /**
      * Creates a new Image representation.
@@ -124,11 +125,13 @@ public class Image extends PoolElement
      * @param client XML-RPC Client.
      * @param id The image id of the target image we want to modify.
      * @param new_template New template contents
+     * @param append True to append new attributes instead of replace the whole template
      * @return If successful the message contains the image id.
      */
-    public static OneResponse update(Client client, int id, String new_template)
+    public static OneResponse update(Client client, int id, String new_template,
+        boolean append)
     {
-        return client.call(UPDATE, id, new_template);
+        return client.call(UPDATE, id, new_template, append ? 1 : 0);
     }
 
     /**
@@ -258,11 +261,25 @@ public class Image extends PoolElement
      * @param client XML-RPC Client.
      * @param id The Image id of the target Image.
      * @param name Name for the new Image.
+     * @param targetDS The ID of the target datastore. Set to -1 to use the current one.
      * @return If successful the message contains the new Image ID.
      */
-    public static OneResponse clone(Client client, int id, String name)
+    public static OneResponse clone(Client client, int id, String name, int targetDS)
     {
-        return client.call(CLONE, id, name);
+        return client.call(CLONE, id, name, targetDS);
+    }
+
+    /**
+     * Renames this Image
+     *
+     * @param client XML-RPC Client.
+     * @param id The Image id of the target Image.
+     * @param name New name for the Image.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public static OneResponse rename(Client client, int id, String name)
+    {
+        return client.call(RENAME, id, name);
     }
 
     // =================================
@@ -300,7 +317,19 @@ public class Image extends PoolElement
      */
     public OneResponse update(String new_template)
     {
-        return update(client, id, new_template);
+        return update(new_template, false);
+    }
+
+    /**
+     * Replaces the template contents.
+     *
+     * @param new_template New template contents
+     * @param append True to append new attributes instead of replace the whole template
+     * @return If successful the message contains the image id.
+     */
+    public OneResponse update(String new_template, boolean append)
+    {
+        return update(client, id, new_template, append);
     }
 
     /**
@@ -495,7 +524,30 @@ public class Image extends PoolElement
      */
     public OneResponse clone(String name)
     {
-        return clone(client, id, name);
+        return clone(client, id, name, -1);
+    }
+
+    /**
+     * Clones this Image into a new one
+     *
+     * @param name Name for the new Image.
+     * @param targetDS The ID of the target datastore.
+     * @return If successful the message contains the new Image ID.
+     */
+    public OneResponse clone(String name, int targetDS)
+    {
+        return clone(client, id, name, targetDS);
+    }
+
+    /**
+     * Renames this Image
+     *
+     * @param name New name for the Image.
+     * @return If an error occurs the error message contains the reason.
+     */
+    public OneResponse rename(String name)
+    {
+        return rename(client, id, name);
     }
 
     // =================================

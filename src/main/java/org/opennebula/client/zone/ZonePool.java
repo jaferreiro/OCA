@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.opennebula.client.group;
+package org.opennebula.client.zone;
 
 import java.util.AbstractList;
 import java.util.Iterator;
@@ -26,19 +26,19 @@ import org.opennebula.client.PoolElement;
 import org.w3c.dom.Node;
 
 /**
- * This class represents an OpenNebula group pool.
+ * This class represents an OpenNebula zone pool.
  * It also offers static XML-RPC call wrappers.
  */
-public class GroupPool extends Pool implements Iterable<Group>{
+public class ZonePool extends Pool implements Iterable<Zone>{
 
-    private static final String ELEMENT_NAME = "GROUP";
-    private static final String INFO_METHOD  = "grouppool.info";
+    private static final String ELEMENT_NAME = "ZONE";
+    private static final String INFO_METHOD  = "zonepool.info";
 
     /**
-     * Creates a new group pool
+     * Creates a new zone pool
      * @param client XML-RPC Client.
      */
-    public GroupPool(Client client)
+    public ZonePool(Client client)
     {
         super(ELEMENT_NAME, client, INFO_METHOD);
     }
@@ -46,11 +46,11 @@ public class GroupPool extends Pool implements Iterable<Group>{
     @Override
     public PoolElement factory(Node node)
     {
-        return new Group(node, client);
+        return new Zone(node, client);
     }
 
     /**
-     * Retrieves all the groups in the pool.
+     * Retrieves all the zones in the pool.
      *
      * @param client XML-RPC Client.
      * @return If successful the message contains the string
@@ -62,27 +62,27 @@ public class GroupPool extends Pool implements Iterable<Group>{
     }
 
     /**
-     * Loads the xml representation of the group pool.
+     * Loads the xml representation of the zone pool.
      *
-     * @see GroupPool#info(Client)
+     * @see ZonePool#info(Client)
      */
     public OneResponse info()
     {
         return super.info();
     }
 
-    public Iterator<Group> iterator()
+    public Iterator<Zone> iterator()
     {
-        AbstractList<Group> ab = new AbstractList<Group>()
+        AbstractList<Zone> ab = new AbstractList<Zone>()
         {
             public int size()
             {
                 return getLength();
             }
 
-            public Group get(int index)
+            public Zone get(int index)
             {
-                return (Group) item(index);
+                return (Zone) item(index);
             }
         };
 
@@ -90,14 +90,14 @@ public class GroupPool extends Pool implements Iterable<Group>{
     }
 
     /**
-     * Returns the Group with the given Id from the pool. If it is not found,
+     * Returns the Zone with the given Id from the pool. If it is not found,
      * then returns null. The method {@link #info()} must be called before.
      *
-     * @param id of the Group to retrieve
+     * @param id of the Zone to retrieve
      * @return The Image with the given Id, or null if it was not found.
      */
-    public Group getById(int id)
+    public Zone getById(int id)
     {
-        return (Group) super.getById(id);
+        return (Zone) super.getById(id);
     }
 }
